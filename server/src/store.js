@@ -35,6 +35,14 @@ export function recordClick(code) {
   return link;
 }
 
+export function deleteLink(code) {
+  const link = links.get(code);
+  if (!link) return undefined;
+
+  links.delete(code);
+  return { ...link };
+}
+
 export function listLinks() {
   return [...links.values()]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

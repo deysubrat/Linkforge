@@ -60,3 +60,23 @@ test('rejects invalid URLs and missing links', async () => {
   assert.equal(missingResponse.status, 404);
   assert.ok((await missingResponse.json()).error);
 });
+
+test('deletes a short link', async () => {
+  const baseUrl = await startServer();
+  const createResponse = await fetch(`${baseUrl}/api/links`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ url: 'https://example.com/delete-me', alias: 'remove-me' }),
+  });
+  assert.equal(createResponse.status, 201);
+
+  const deleteResponse = await fetch(`${baseUrl}/api/links/remove-me`, { method: 'DELETE' });
+  assert.equal(deleteResponse.status, 200);
+  assert.equal((await deleteResponse.json()).data.code, 'remove-me');
+
+  const listResponse = await fetch(`${baseUrl}/api/links`);
+  assert.deepEqual((await listResponse.json()).data, []);
+
+  const missingResponse = await fetch(`${baseUrl}/api/links/remove-me`, { method: 'DELETE' });
+  assert.equal(missingResponse.status, 404);
+});
