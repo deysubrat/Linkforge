@@ -1,0 +1,14 @@
+{
+  "name": "linkforge",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "start": "npm run start --prefix server",
+    "test": "NODE_ENV=test npm run test --prefix server && NODE_ENV=test node --test tests/api.test.js tests/integration/black-box.test.js",
+    "build": "npm run build --prefix web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

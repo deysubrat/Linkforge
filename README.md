@@ -1,131 +1,61 @@
 # LinkForge
 
-LinkForge is a full-stack JavaScript application built with React on the frontend and Express.js on the backend.
-
-## Tech stack
-
-- **Frontend:** React.js
-- **Backend:** Node.js and Express.js
-- **Language:** JavaScript
-- **Package manager:** npm
+LinkForge is a full-stack URL shortener built with React, Vite, Node.js, and Express. It creates shareable short links, supports optional custom aliases, tracks clicks in memory, and shows recently created links in the frontend.
 
 ## Project structure
 
-The project is organized into separate frontend and backend applications:
-
 ```text
 Linkforge/
-├── client/          # React application
-├── server/          # Express.js API
-├── .gitignore
-└── README.md
+├── server/                 # Express API and backend tests
+│   ├── src/server.js       # Routes and HTTP server
+│   └── src/store.js        # In-memory link store
+├── web/                    # React/Vite frontend
+├── tests/                  # API and opt-in integration tests
+├── docs/                   # API and setup documentation
+└── package.json            # Root development commands
 ```
 
 ## Prerequisites
 
-Install the following before getting started:
-
 - Node.js 18 or newer
 - npm 9 or newer
 
-You can check your installed versions with:
+Install all dependencies from the repository root:
 
 ```bash
-node --version
-npm --version
-```
-
-## Getting started
-
-Clone the repository and move into the project directory:
-
-```bash
-git clone <repository-url>
-cd Linkforge
-```
-
-Install dependencies for both applications:
-
-```bash
-cd server
 npm install
-
-cd ../client
-npm install
+npm install --prefix server
+npm install --prefix web
 ```
 
-Create environment files as needed by each application. For example:
+## Development
 
-```text
-server/.env
-client/.env
-```
-
-Do not commit secrets or private credentials to the repository.
-
-## Running the application
-
-Start the Express API in one terminal:
+Run the Express API and Vite frontend together:
 
 ```bash
-cd server
 npm run dev
 ```
 
-Start the React development server in another terminal:
+The API runs on `http://localhost:5000` and the frontend normally runs on the Vite port shown in the terminal. Set `PORT` or `BASE_URL` for backend configuration. Set `VITE_API_URL` when the API is not available at `http://localhost:5000/api`.
+
+## Testing and build
 
 ```bash
-cd client
-npm start
+npm test                 # Backend and API tests
+npm run build            # Production frontend build
+npm run start            # Express API only
 ```
 
-The frontend will normally be available at `http://localhost:3000`. The backend port is defined by the server configuration, commonly `http://localhost:5000`.
-
-If the frontend and backend use different ports, configure the frontend API base URL through its environment configuration.
-
-## Production build
-
-Build the React application for production:
+The optional black-box integration test requires a running API:
 
 ```bash
-cd client
-npm run build
+RUN_INTEGRATION=1 BASE_URL=http://127.0.0.1:5000 node --test tests/integration/black-box.test.js
 ```
-
-Start the Express server using its production script:
-
-```bash
-cd server
-npm start
-```
-
-The exact script names may vary depending on the `package.json` files in each application.
 
 ## API
 
-The Express application exposes the backend API. Add endpoint documentation here as routes are implemented.
+See [docs/api.md](docs/api.md) for endpoints and response shapes. Link data is intentionally in-memory and resets whenever the server restarts.
 
-Example format:
+## Security
 
-| Method | Route | Description |
-| --- | --- | --- |
-| `GET` | `/api/...` | Describe the endpoint |
-
-## Development guidelines
-
-- Keep frontend code inside `client/` and backend code inside `server/`.
-- Store configuration and secrets in environment variables.
-- Validate API input on the server.
-- Add tests for new functionality where practical.
-- Run linting and tests before opening a pull request.
-
-## Contributing
-
-1. Create a feature branch.
-2. Make your changes and verify them locally.
-3. Commit the changes with a clear message.
-4. Open a pull request describing what changed and how it was tested.
-
-## License
-
-Add the project license here.
+Do not commit `.env` files or secrets. Validate all user input at the API boundary before adding persistent storage or deploying publicly.
