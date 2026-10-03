@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { createLink, getLink, listLinks, recordClick } from './store.js';
+import { createLink, deleteLink, getLink, listLinks, recordClick } from './store.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
@@ -57,6 +57,15 @@ app.get('/api/links', (request, response) => {
   const limit = Math.min(Math.max(Number.parseInt(request.query.limit, 10) || 20, 1), 100);
   const links = listLinks().slice(0, limit).map((link) => publicLink(link, request));
   response.json({ data: links });
+});
+
+app.delete('/api/links/:code', (request, response) => {
+  const link = deleteLink(request.params.code);
+  if (!link) {
+    return response.status(404).json({ error: { message: 'Short link not found' } });
+  }
+
+  return response.json({ data: publicLink(link, request) });
 });
 
 app.get('/:code', (request, response) => {

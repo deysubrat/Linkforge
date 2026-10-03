@@ -6,6 +6,7 @@ function normalizeLink(item) {
   const data = item?.data || item;
   return {
     id: data.id || data.shortCode || data.alias || data.shortUrl,
+    shortCode: data.shortCode || data.code || data.alias,
     shortUrl: data.shortUrl || data.url || `${window.location.origin}/${data.alias || data.shortCode}`,
     originalUrl: data.originalUrl || data.longUrl || data.destination || data.target || data.url,
     createdAt: data.createdAt,
@@ -20,6 +21,8 @@ function App() {
   const [result, setResult] = useState(null);
   const [links, setLinks] = useState([]);
   const [copied, setCopied] = useState('');
+  const [deleting, setDeleting] = useState('');
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/links`)
@@ -69,6 +72,24 @@ function App() {
     window.setTimeout(() => setCopied(''), 1800);
   }
 
+  async function deleteLink(link) {
+    if (!window.confirm(`Delete ${link.shortUrl}?`)) return;
+
+    setDeleting(link.id);
+    setDeleteMessage('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/links/${encodeURIComponent(link.shortCode)}`, { method: 'DELETE' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error?.message || 'Unable to delete this link.');
+      setLinks((current) => current.filter((item) => item.id !== link.id));
+      if (result?.id === link.id) setResult(null);
+    } catch (error) {
+      setDeleteMessage(error.message || 'Unable to delete this link.');
+    } finally {
+      setDeleting('');
+    }
+  }
+
   return (
     <main className="page-shell">
       <nav className="nav-bar">
@@ -99,7 +120,8 @@ function App() {
       </section>
 
       <section className="recent-section"><div className="section-heading"><div><p className="eyebrow">YOUR LINK DESK</p><h2>Recent links</h2></div><span className="link-count">{links.length} {links.length === 1 ? 'link' : 'links'}</span></div>
-        {links.length ? <div className="link-list">{links.map((link) => <article className="link-row" key={link.id || link.shortUrl}><div className="link-orb">↗</div><div className="link-details"><a href={link.shortUrl} target="_blank" rel="noreferrer">{link.shortUrl}</a><span>{link.originalUrl}</span></div><button className="icon-button" onClick={() => copyLink(link)} aria-label={`Copy ${link.shortUrl}`}>{copied === link.id ? '✓' : '⧉'}</button></article>)}</div> : <div className="empty-state"><span>✦</span><p>Your freshly shortened links will appear here.</p></div>}
+        {deleteMessage && <p className="feedback error">{deleteMessage}</p>}
+        {links.length ? <div className="link-list">{links.map((link) => <article className="link-row" key={link.id || link.shortUrl}><div className="link-orb">↗</div><div className="link-details"><a href={link.shortUrl} target="_blank" rel="noreferrer">{link.shortUrl}</a><span>{link.originalUrl}</span></div><div className="row-actions"><button className="icon-button" onClick={() => copyLink(link)} aria-label={`Copy ${link.shortUrl}`}>{copied === link.id ? '✓' : '⧉'}</button><button className="delete-button" onClick={() => deleteLink(link)} disabled={deleting === link.id}>{deleting === link.id ? 'Deleting…' : 'Delete'}</button></div></article>)}</div> : <div className="empty-state"><span>✦</span><p>Your freshly shortened links will appear here.</p></div>}
       </section>
       <footer><span>© {new Date().getFullYear()} LinkForge</span><span>Made for sharing</span></footer>
     </main>
